@@ -86,7 +86,7 @@ Mat4xn MatMul(Mat4xn& mat_a, Mat4xn& mat_b) {
         for (int j=0; j<4; j++) {
             float value = 0;
             for (int k=0; k<4; k++) {
-                value += mat_a.get(j, k) * mat_b.get(k, n);
+                value += mat_a.get(j, k) * mat_b.get(k, i);
             }
             res.set(j, i, value);
         }
@@ -95,22 +95,22 @@ Mat4xn MatMul(Mat4xn& mat_a, Mat4xn& mat_b) {
     return res;
 }
 
-Mat4xn GetResizeMat(float resize_x, float resize_y, float resize_z) {
+Mat4xn GetResizeMat(const Vec3& resize) {
     Mat4xn resizeMat(4);
-    resizeMat.set(0, 0, resize_x);
-    resizeMat.set(1, 1, resize_y);
-    resizeMat.set(2, 2, resize_z);
+    resizeMat.set(0, 0, resize.x);
+    resizeMat.set(1, 1, resize.y);
+    resizeMat.set(2, 2, resize.z);
     resizeMat.set(3, 3, 1);
     return resizeMat;
 }
 
-Mat4xn GetRotateMat(float theta_x, float theta_y, float theta_z) {
+Mat4xn GetRotateMat(const Vec3& theta) {
     Mat4xn rotateX(4);
     Mat4xn rotateY(4);
     Mat4xn rotateZ(4);
 
-    float sin_x = std::sinf(theta_x);
-    float cos_x = std::cosf(theta_x);
+    float sin_x = std::sinf(theta.x);
+    float cos_x = std::cosf(theta.x);
     rotateX.set(0, 0, 1);
     rotateX.set(1, 1, cos_x);
     rotateX.set(2, 2, cos_x);
@@ -118,8 +118,8 @@ Mat4xn GetRotateMat(float theta_x, float theta_y, float theta_z) {
     rotateX.set(2, 1, sin_x);
     rotateX.set(3, 3, 1);
 
-    float sin_y = std::sinf(theta_y);
-    float cos_y = std::cosf(theta_y);
+    float sin_y = std::sinf(theta.y);
+    float cos_y = std::cosf(theta.y);
     rotateY.set(0, 0, cos_y);
     rotateY.set(1, 1, 1);
     rotateY.set(2, 2, cos_y);
@@ -127,8 +127,8 @@ Mat4xn GetRotateMat(float theta_x, float theta_y, float theta_z) {
     rotateY.set(2, 0, -sin_y);
     rotateY.set(3, 3, 1);
     
-    float sin_z = std::sinf(theta_z);
-    float cos_z = std::cosf(theta_z);
+    float sin_z = std::sinf(theta.z);
+    float cos_z = std::cosf(theta.z);
     rotateZ.set(0, 0, cos_z);
     rotateZ.set(1, 1, cos_z);
     rotateZ.set(2, 2, 1);
@@ -141,19 +141,24 @@ Mat4xn GetRotateMat(float theta_x, float theta_y, float theta_z) {
     return rotateXYZ;
 }
 
-Mat4xn GetMoveMat(float mv_x, float mv_y, float mv_z) {
+Mat4xn GetMoveMat(const Vec3& move) {
     Mat4xn mvMat(4);
-    mvMat.set(0, 3, mv_x);
-    mvMat.set(1, 3, mv_y);
-    mvMat.set(2, 3, mv_z);
+    mvMat.set(0, 3, move.x);
+    mvMat.set(1, 3, move.y);
+    mvMat.set(2, 3, move.z);
     mvMat.set(1, 1, 1);
     mvMat.set(2, 2, 1);
     mvMat.set(3, 3, 1);
     return mvMat;
 }
 
-Mat4xn GetModelTransMat() {
-    Mat4xn 
+Mat4xn GetModelTransMat(const Vec3& resize, const Vec3& rotate, const Vec3& move) {
+    Mat4xn resizeMat = GetResizeMat(resize);
+    Mat4xn rotateMAt = GetRotateMat(rotate);
+    Mat4xn moveMat = GetMoveMat(move);
+    Mat4xn mr = MatMul(moveMat, rotateMAt);
+    Mat4xn mrr = MatMul(mr, resizeMat);
+    return mrr;
 }
 
 Mat4xn GetViewTransMat() {
