@@ -14,12 +14,12 @@ bool Model::LoadOBJ(const std::string& path) {
         ss >> type;
 
         if (type == "v") {
-            Vec3 vec;
-            ss >> vec.x >> vec.y >> vec.z;
-            m_mesh.verticies.emplace_back(vec);
+            Vertex v;
+            ss >> v.ndc.x >> v.ndc.y >> v.ndc.z;
+            m_mesh.verticies.emplace_back(v);
         } else if (type == "f") {
             Triangle tri;
-            ss >> tri.idx0 >> tri.idx1 >> tri.idx2;
+            sscanf(line.c_str(), "f %d/%*d/%*d %d/%*d/%*d %d/%*d/%*d", &tri.idx0, &tri.idx1, &tri.idx2);
             // obj索引从1开始
             tri.idx0--;
             tri.idx1--;

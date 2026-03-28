@@ -7,6 +7,46 @@
 
 struct Vec3 {
     float x, y, z;
+    Vec3 operator-(const Vec3& other) const {
+        Vec3 res;
+        res.x = x - other.x;
+        res.y = y - other.y;
+        res.z = z - other.z;
+        return res;
+    }
+
+    Vec3 operator/(const float div) const {
+        Vec3 res;
+        res.x = x / div;
+        res.y = y / div;
+        res.z = z / div;
+        return res;
+    }
+
+    Vec3 crossProduct(const Vec3& other) const {
+        Vec3 res;
+        res.x = y * other.z - z * other.y;
+        res.y = z * other.x - x * other.z;
+        res.z = x * other.y - y * other.x;
+        return res;
+    }
+
+    float dotProduct(const Vec3& other) const {
+        return x * other.x + y * other.y + z * other.z;
+    }
+
+    float getMagnitude() const {
+        return std::sqrt(x * x + y * y + z * z);
+    }
+
+    Vec3 normalize() const {
+        float mat = getMagnitude();
+        Vec3 res;
+        res.x = x / mat;
+        res.y = y / mat;
+        res.z = z / mat;
+        return res;
+    }
 };
 
 struct Vec4
@@ -80,95 +120,25 @@ inline uint32_t PackRGBA(const Color& c) {
     return (uint32_t(c.a) << 24 | uint32_t(c.r) << 16 | uint32_t(c.g) << 8 | uint32_t(c.b));
 }
 
-Mat4xn MatMul(Mat4xn& mat_a, Mat4xn& mat_b) {
-    Mat4xn res(mat_b.getCol());
-    for (int i=0; i<mat_b.getCol(); i++) {
-        for (int j=0; j<4; j++) {
-            float value = 0;
-            for (int k=0; k<4; k++) {
-                value += mat_a.get(j, k) * mat_b.get(k, i);
-            }
-            res.set(j, i, value);
-        }
-    }
+Mat4xn MatMul(const Mat4xn& mat_a, const Mat4xn& mat_b);
 
-    return res;
-}
+Mat4xn GetResizeMat(const Vec3& resize);
 
-Mat4xn GetResizeMat(const Vec3& resize) {
-    Mat4xn resizeMat(4);
-    resizeMat.set(0, 0, resize.x);
-    resizeMat.set(1, 1, resize.y);
-    resizeMat.set(2, 2, resize.z);
-    resizeMat.set(3, 3, 1);
-    return resizeMat;
-}
+Mat4xn GetRotateMat(const Vec3& theta);
 
-Mat4xn GetRotateMat(const Vec3& theta) {
-    Mat4xn rotateX(4);
-    Mat4xn rotateY(4);
-    Mat4xn rotateZ(4);
+Mat4xn GetMoveMat(const Vec3& move);
 
-    float sin_x = std::sinf(theta.x);
-    float cos_x = std::cosf(theta.x);
-    rotateX.set(0, 0, 1);
-    rotateX.set(1, 1, cos_x);
-    rotateX.set(2, 2, cos_x);
-    rotateX.set(1, 2, -sin_x);
-    rotateX.set(2, 1, sin_x);
-    rotateX.set(3, 3, 1);
+Mat4xn GetModelTransMat(const Vec3& resize, const Vec3& rotate, const Vec3& move);
 
-    float sin_y = std::sinf(theta.y);
-    float cos_y = std::cosf(theta.y);
-    rotateY.set(0, 0, cos_y);
-    rotateY.set(1, 1, 1);
-    rotateY.set(2, 2, cos_y);
-    rotateY.set(0, 2, sin_y);
-    rotateY.set(2, 0, -sin_y);
-    rotateY.set(3, 3, 1);
-    
-    float sin_z = std::sinf(theta.z);
-    float cos_z = std::cosf(theta.z);
-    rotateZ.set(0, 0, cos_z);
-    rotateZ.set(1, 1, cos_z);
-    rotateZ.set(2, 2, 1);
-    rotateZ.set(0, 1, -sin_x);
-    rotateZ.set(1, 0, sin_x);
-    rotateZ.set(3, 3, 1);
+Mat4xn GetViewTransMat(const Vec3& eye, const Vec3& center, const Vec3& up);
 
-    Mat4xn rotateXY = MatMul(rotateX, rotateY);
-    Mat4xn rotateXYZ = MatMul(rotateXY, rotateZ);
-    return rotateXYZ;
-}
+Mat4xn GetOrthoProjectionMat(float l, float r, float b, float t, float n, float f);
 
-Mat4xn GetMoveMat(const Vec3& move) {
-    Mat4xn mvMat(4);
-    mvMat.set(0, 3, move.x);
-    mvMat.set(1, 3, move.y);
-    mvMat.set(2, 3, move.z);
-    mvMat.set(1, 1, 1);
-    mvMat.set(2, 2, 1);
-    mvMat.set(3, 3, 1);
-    return mvMat;
-}
+Mat4xn GetPersp2OrthoMat(float n, float f);
 
-Mat4xn GetModelTransMat(const Vec3& resize, const Vec3& rotate, const Vec3& move) {
-    Mat4xn resizeMat = GetResizeMat(resize);
-    Mat4xn rotateMAt = GetRotateMat(rotate);
-    Mat4xn moveMat = GetMoveMat(move);
-    Mat4xn mr = MatMul(moveMat, rotateMAt);
-    Mat4xn mrr = MatMul(mr, resizeMat);
-    return mrr;
-}
+Mat4xn GetProjectionTransMat(float l, float r, float b, float t, float n, float f);
 
-Mat4xn GetViewTransMat() {
-
-}
-
-Mat4xn GetProjectionTransMat() {
-
-}
-
-Mat4xn MVPTrans() {
-
-}
+Mat4xn MVPTrans(const Vec3& resize, const Vec3& rotate, const Vec3& move,
+                const Vec3& eye, const Vec3& center, const Vec3& up,
+                float l, float r, float b, float t, float n, float f,
+                const Mat4xn& points);

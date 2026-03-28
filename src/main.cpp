@@ -2,10 +2,13 @@
 #define _UNICODE
 #include <Windows.h>
 #include <iostream>
+#include <vector>
 #include "../include/Renderer.h"
+#include "../include/Model.h"
 
 FrameBuffer g_fb;
 Renderer* g_renderer = nullptr;
+Model* g_model = nullptr;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
@@ -13,6 +16,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             HDC hdc = GetDC(hwnd);
             g_fb.Initialize(hdc, 800, 600);
             g_renderer = new Renderer(&g_fb);
+            g_model = new Model();
+            g_model->LoadOBJ("D:/workstation/cpp/FirstEngine/assets/african_head/african_head.obj");
             ReleaseDC(hwnd, hdc);
             break;
         }
@@ -21,11 +26,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             HDC hdc = BeginPaint(hwnd, &ps);
 
             g_renderer->Clear({25, 25, 25, 0});
-            Vertex v0 = {{-0.5f, -0.5f, 1.0f}, {255, 0, 0, 0}};
-            Vertex v1 = {{0.5f, -0.5f, 0.0f}, {0, 255, 0, 0}};
-            Vertex v2 = {{0.0f, 0.5f, -1.0f}, {0, 0, 255, 0}};
-
-            g_renderer->DrawTriangle(v0, v1, v2);
+            std::vector<Vertex> vertexBuffer = g_model->GetVertexBuffer();
+            std::vector<Triangle> indexBuffer = g_model->GetIndexBuffer();
+            for (int i=0; i<indexBuffer.size(); i++) {
+                Triangle tri = indexBuffer[i];
+                vertexBuffer[tri.idx0].color = {255, 0, 0, 0};
+                vertexBuffer[tri.idx1].color = {0, 255, 0, 0};
+                vertexBuffer[tri.idx2].color = {0, 0, 255, 0};
+                g_renderer->DrawTriangle(vertexBuffer[tri.idx0], vertexBuffer[tri.idx1], vertexBuffer[tri.idx2]);
+            }
 
             g_fb.Present(hdc);
 
