@@ -5,6 +5,8 @@
 #include <iostream>
 #include <cmath>
 
+constexpr double PI = 3.14159265358979323846;
+
 struct Vec3 {
     float x, y, z;
     Vec3 operator-(const Vec3& other) const {
@@ -54,12 +56,43 @@ struct Vec4
     float x, y, z, w;
 };
 
+struct Color {
+    uint8_t r, g, b, a;
+};
+
+struct Vertex {
+    Vec3 ndc;
+    Color color;
+};
+
 struct Mat4xn
 {
 public:
     Mat4xn(int n) {
         col_size = n;
         mat.resize(4 * col_size, 0);
+    }
+
+    Mat4xn(std::vector<Vec3>& points) {
+        col_size = points.size();
+        mat.resize(4 * col_size, 0);
+        for (int i=0; i<col_size; i++) {
+            set(0, i, points[i].x);
+            set(1, i, points[i].y);
+            set(2, i, points[i].z);
+            set(3, i, 1);
+        }
+    }
+
+    Mat4xn(std::vector<Vertex>& vertex) {
+        col_size = vertex.size();
+        mat.resize(4 * col_size, 0);
+        for (int i=0; i<col_size; i++) {
+            set(0, i, vertex[i].ndc.x);
+            set(1, i, vertex[i].ndc.y);
+            set(2, i, vertex[i].ndc.z);
+            set(3, i, 1);
+        }
     }
 
     inline float get(int row, int col) const {
@@ -70,13 +103,26 @@ public:
         return mat[row * col_size + col];
     }
 
-    inline void set(int row, int col, int value) {
-        mat[row * col_size + col] = value;
+    inline void set(int row, int col, float value) {
         if (row >= 4 || col >= col_size) {
             std::cout << "[ERROR] row or col is overflow" << std::endl; 
             return;
         }
+        mat[row * col_size + col] = value;
         return;
+    }
+
+    void toVertexBuffer(std::vector<Vertex>& vertex) {
+        if (vertex.size() != col_size)
+            return;
+        for (int i=0; i<col_size; i++) {
+            vertex[i].ndc.x = get(0, i);
+            vertex[i].ndc.y = get(1, i);
+            vertex[i].ndc.z = get(2, i);
+            float w = get(3, i);
+            if (w != 0)
+                vertex[i].ndc = vertex[i].ndc / w;
+        }
     }
 
     inline int getCol() const { return col_size; }
@@ -85,20 +131,11 @@ private:
     std::vector<float> mat;
 };
 
-
-struct Color {
-    uint8_t r, g, b, a;
-};
-
-struct Vertex {
-    Vec3 ndc;
-    Color color;
-};
-
 inline float CrossProduct(const Vec3& a, const Vec3& b, const Vec3& c) {
     return  (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x);
 }
 
+// viewport transform
 inline Vec3 NDC2Screen(const Vec3& ndc, int width, int height) {
     Vec3 out;
     out.x = (ndc.x * 0.5f + 0.5f) * (width - 1);
@@ -132,13 +169,13 @@ Mat4xn GetModelTransMat(const Vec3& resize, const Vec3& rotate, const Vec3& move
 
 Mat4xn GetViewTransMat(const Vec3& eye, const Vec3& center, const Vec3& up);
 
-Mat4xn GetOrthoProjectionMat(float l, float r, float b, float t, float n, float f);
+Mat4xn GetOrthoProjectionMat(float fov, float aspect, float near, float far);
 
 Mat4xn GetPersp2OrthoMat(float n, float f);
 
-Mat4xn GetProjectionTransMat(float l, float r, float b, float t, float n, float f);
+Mat4xn GetProjectionTransMat(float fov, float aspect, float near, float far);
 
 Mat4xn MVPTrans(const Vec3& resize, const Vec3& rotate, const Vec3& move,
                 const Vec3& eye, const Vec3& center, const Vec3& up,
-                float l, float r, float b, float t, float n, float f,
+                float fov, float aspect, float near, float far,
                 const Mat4xn& points);

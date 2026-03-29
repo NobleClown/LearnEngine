@@ -11,4 +11,5 @@ add_executable(FirstEngine  # 生成的exe名，以及包含的cpp文件
     src/FrameBuffer.cpp
     src/MathTypes.cpp
     src/Model.cpp
+    src/Camera.cpp
 )

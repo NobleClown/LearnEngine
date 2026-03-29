@@ -23,7 +23,7 @@ bool FrameBuffer::Initialize(HDC hdc, int width, int height) {
     m_bitmap = CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, (void**)&m_pixels, nullptr, 0);
     SelectObject(m_memDC, m_bitmap);
 
-    m_zbuffer.resize(width * height, 0.0f);
+    m_zbuffer.resize(width * height, -100.0f);
 
     return m_pixels != nullptr;
 }
