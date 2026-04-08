@@ -1,10 +1,10 @@
 #pragma once
 #include "../../mathtool/include/MathType.h"
+#include "Texture.h"
 
 struct Material {
-    Vec3 albedo;      // 基础颜色
-    
-    float kd;         // 漫反射系数
-    float ks;         // 高光系数
-    float shininess;  // 高光指数
+    Texture2D* diffuseMap;
+
+    Vec3 specularColor = Vec3(0.5f, 0.f, 0.f);
+    float shininess = 32.0f;
 };

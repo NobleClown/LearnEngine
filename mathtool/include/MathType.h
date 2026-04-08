@@ -11,9 +11,24 @@ constexpr double PI = 3.14159265358979323846;
 struct Vec2 {
     float x, y;
 
-    Vec2 operator+(const Vec2&) const;
-    Vec2 operator-(const Vec2&) const;
-    Vec2 operator*(float) const;
+    Vec2 operator+(const Vec2& other) const {
+        Vec2 res;
+        res.x = x + other.x;
+        res.y = y + other.y;
+        return res;
+    }
+    Vec2 operator-(const Vec2& other) const {
+        Vec2 res;
+        res.x = x - other.x;
+        res.y = y - other.y;
+        return res;
+    }
+    Vec2 operator*(float f) const {
+        Vec2 res;
+        res.x = x * f;
+        res.y = y * f;
+        return res;
+    }
 };
 
 struct Vec3 {
@@ -252,7 +267,7 @@ struct Mat4 {
         for (int i=0; i<4; i++) {
             for (int j=0; j<4; j++) {
                 float sum = 0.f;
-                for (int k=0; j<4; k++) {
+                for (int k=0; k<4; k++) {
                     sum += get(i, k) * other.get(k, j);
                 }
                 res.set(i, j, sum);
@@ -364,8 +379,8 @@ struct Mat3 {
         Mat3 adj;
 
         adj.set(0, 0,  (e*i - f*h));
-        adj.set(0, 0, -(b*i - c*h));
-        adj.set(0, 0,  (b*f - c*e));
+        adj.set(0, 1, -(b*i - c*h));
+        adj.set(0, 2,  (b*f - c*e));
 
         adj.set(1, 0, -(d*i - f*g));
         adj.set(1, 1,  (a*i - c*g));

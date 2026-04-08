@@ -27,6 +27,7 @@ Mat4 Camera::getViewMat() const {
 
 Mat4 Camera::getOrthoMat() const {
     Mat4 orthoMat;
+    float rad = fov / 2 * PI / 180.0f;
     float tanHalfFov = tan(fov / 2 * PI / 180.0f);
     float top = nearPlane * tanHalfFov;
     float bottom = -top;

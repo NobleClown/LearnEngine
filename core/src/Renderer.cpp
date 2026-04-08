@@ -50,11 +50,13 @@ void Renderer::drawMesh(const Mesh& mesh, const Mat4& modelMat, const std::vecto
         out0.clipPos = out0.clipPos * out0.invW;
         out1.clipPos = out1.clipPos * out1.invW;
         out2.clipPos = out2.clipPos * out2.invW;
-        drawTriangle(out0, out1, out2, mvpMat, lights);
+        Material* mtr = mesh.getMaterial();
+        Texture2D* tex = mtr->diffuseMap;
+        drawTriangle(out0, out1, out2, lights, *tex);
     }
 }
 
-void Renderer::drawTriangle(const VSOut v0, const VSOut& v1, const VSOut& v2, const Mat4& mvpMat, const std::vector<Light>& lights) {
+void Renderer::drawTriangle(const VSOut v0, const VSOut& v1, const VSOut& v2, const std::vector<Light>& lights, const Texture2D& tex) {
     int width = framebuffer->width;
     int height = framebuffer->height;
 
@@ -76,8 +78,8 @@ void Renderer::drawTriangle(const VSOut v0, const VSOut& v1, const VSOut& v2, co
     }
 
     // 开始着色
-    for (int i=minY; i<=maxY; i++) {
-        for (int j=minX; j<maxX; j++) {
+    for (int i=std::max(0, minY); i<=maxY && i<height; i++) {
+        for (int j=std::max(0, minX); j<=maxX && j<width; j++) {
             // 获取着色中心
             Vec3 p_center = {j + 0.5, i + 0.5, 0};
             // 计算三角形三个顶点与着色中心围成的面积，当做权重(计算重心坐标)
@@ -91,16 +93,16 @@ void Renderer::drawTriangle(const VSOut v0, const VSOut& v1, const VSOut& v2, co
                 w1 /= area;
                 w2 /= area;
                 float cur_depth = p0.z * w0 + p1.z * w1 + p2.z * w2;
-                float& depth = framebuffer->depth(j, i);
+                float depth = framebuffer->getDepth(j, i);
                 if (depth <= cur_depth) 
                     continue;
-                
+                framebuffer->setDepth(j, i, cur_depth);
                 FSIn fsIn;
                 fsIn.worldPos = v0.worldPos * w0 + v1.worldPos * w1 + v2.worldPos * w2;
                 fsIn.normal = v0.normal * w0 + v1.normal * w1 + v2.normal * w2;
                 fsIn.uv = v0.uv * w0 + v1.uv * w1 + v2.uv * w2;
                 
-                Vec3 color = shader->fragment(fsIn, lights);
+                Vec3 color = shader->fragment(fsIn, lights, *camera, tex);
                 framebuffer->setPixel(j, i, PackRGBA(color));
             }
         }

@@ -1,4 +1,5 @@
 #include <limits>
+#include <iostream>
 #include "../include/FrameBuffer.h"
 
 void FrameBuffer::resize(int w, int h) {
@@ -20,10 +21,31 @@ void FrameBuffer::clearDepth(float depth) {
 }
 
 void FrameBuffer::setPixel(int x, int y, uint32_t color) {
-    colorBuffer[x * width + y] = color;
+    colorBuffer[y * width + x] = color;
     return ;
 }
 
-float& FrameBuffer::depth(int x, int y) {
-    return depthBuffer[x * width + y];
+float FrameBuffer::getDepth(int x, int y) const {
+    if (x >= width || y >= height)
+        return 100.f;
+    return depthBuffer[y * width + x];
+}
+
+void FrameBuffer::setDepth(int x, int y, float val) {
+    if (x >= width || y >= height)
+        return;
+    depthBuffer[y * width + x] = val;
+}
+
+void FrameBuffer::Present(HDC hdc) {
+    BITMAPINFO bmi = {};
+    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmi.bmiHeader.biWidth = width;
+    bmi.bmiHeader.biHeight = -height; // 负数 = 不翻转（关键！）
+    bmi.bmiHeader.biPlanes = 1;
+    bmi.bmiHeader.biBitCount = 32;
+    bmi.bmiHeader.biCompression = BI_RGB;
+
+
+    SetDIBitsToDevice(hdc, 0, 0, width, height, 0, 0, 0, height, colorBuffer.data(), &bmi, DIB_RGB_COLORS);
 }

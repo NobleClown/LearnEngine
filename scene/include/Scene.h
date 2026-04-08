@@ -15,6 +15,6 @@ public:
     std::vector<Light> lights;
 
 public:
-    void addObject(const Object& obj);
-    void addLight(const Light& light);
+    void addObject(const Object& obj) { objects.push_back(obj); }
+    void addLight(const Light& light) { lights.push_back(light); }
 };

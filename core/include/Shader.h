@@ -21,7 +21,7 @@ struct FSIn {
 class Shader {
 public:
     virtual VSOut vertex(const Vertex&, const Mat4& MVP, const Mat4& modelMat, const Mat3& normalMat) = 0;
-    virtual Vec3 fragment(const FSIn&, const std::vector<Light>& lights, const Camera& camera) = 0;
+    virtual Vec3 fragment(const FSIn& in, const std::vector<Light>& lights, const Camera& camera, const Texture2D& tex) = 0;
 };
 
 class SimpleShader : public Shader {
@@ -38,16 +38,23 @@ public:
         return out;
     }
 
-    Vec3 fragment(FSIn& in, const std::vector<Light>& lights, const Camera& camera)
+    Vec3 fragment(const FSIn& in, const std::vector<Light>& lights, const Camera& camera, const Texture2D& tex) override
     {
+        Vec3 albedo = tex.sample(in.uv);
         Vec3 norm = in.normal.normalize();
-        Vec3 lightDir = lights[0].position - in.worldPos;
+        Vec3 lightDir = (lights[0].position - in.worldPos);
         float r2 = lightDir.dotProduct(lightDir);
+        lightDir = lightDir.normalize();
 
         Vec3 inverseLookat = (camera.position - in.worldPos).normalize();
         Vec3 HalfVec = (lightDir + inverseLookat).normalize();
-
-        
-        return Vec3(1, 0, 0); // 红色
+        float k_spec = std::powf(std::max(0.f, HalfVec.dotProduct(norm)), 32) / r2 * 10;
+        float k_amb = 0.01f;
+        float k_diff = std::max(norm.dotProduct(lightDir), 0.f) / r2;
+        Vec3 res = albedo * k_amb + albedo * k_diff + albedo * k_spec;
+        res.x = std::min(1.f, res.x);
+        res.y = std::min(1.f, res.y);
+        res.z = std::min(1.f, res.z);
+        return res * 255;
     }
 };

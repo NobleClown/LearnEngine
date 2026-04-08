@@ -5,6 +5,7 @@
 #include <sstream>
 #include <vector>
 #include "../../mathtool/include/MathType.h"
+#include "Material.h"
 
 struct Triangle {
     uint32_t idx0, idx1, idx2;
@@ -39,15 +40,24 @@ public:
     std::vector<uint32_t> getIndexBuffer() const { return indices; }
     void addVertex(const Vertex& v) { verticies.emplace_back(v); }
     void addIndex(const uint32_t& p) { indices.emplace_back(p); }
+    void setMaterial(Material* _material) { material = _material; }
+    Material* getMaterial() const { return material; }
 private:
     std::vector<Vertex> verticies;
     std::vector<uint32_t> indices;
+    Material* material;
 };
 
 class Model {
 public:
     bool LoadOBJ(const std::string& path);
     std::vector<Mesh> GetMeshes() const { return m_meshes; }
+    bool setMaterial(int idx, Material* _material) {
+        if (idx > m_meshes.size())
+            return false;
+        m_meshes[idx].setMaterial(_material);
+        return true;
+    }
 private:
     std::vector<Mesh> m_meshes;
 };

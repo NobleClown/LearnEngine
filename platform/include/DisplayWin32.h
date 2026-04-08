@@ -4,14 +4,17 @@
 #include <Windows.h>
 #include <functional>
 #include "../../core/include/FrameBuffer.h"
+
+using RenderCallback = void(*)(HDC, void*);
 class DisplayWin32 {
 public:
     DisplayWin32(int width, int height, const wchar_t* title);
 
     void run();
 
-    void setRenderCallback(std::function<void(HDC)> cb) {
+    void setRenderCallback(RenderCallback cb, void* userData) {
         renderCallback = cb;
+        this->userData = userData;
     }
 
 private:
@@ -40,7 +43,7 @@ private:
             HDC hdc = BeginPaint(hwnd, &ps);
 
             if (renderCallback) {
-                renderCallback(hdc);  // ⭐ 调用外部渲染
+                renderCallback(hdc, userData);  // ⭐ 调用外部渲染
             }   
 
             EndPaint(hwnd, &ps);
@@ -58,6 +61,6 @@ private:
 private:
     HWND hwnd;
     int m_width, m_height;
-
-    std::function<void(HDC)> renderCallback;
+    void* userData;
+    std::function<void(HDC, void*)> renderCallback;
 };

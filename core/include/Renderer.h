@@ -23,9 +23,7 @@ private:
 
     void drawMesh(const Mesh& mesh, const Mat4& modelMat, const std::vector<Light>& lights);
 
-    void drawTriangle(const VSOut v0, const VSOut& v1, const VSOut& v2, const Mat4& mvpMat, const std::vector<Light>& lights);
-
-    void rasterizeTriangle(...);
+    void drawTriangle(const VSOut v0, const VSOut& v1, const VSOut& v2, const std::vector<Light>& lights, const Texture2D& tex);
 
     // viewport transform
     inline Vec3 NDC2Screen(const Vec3& ndc) {

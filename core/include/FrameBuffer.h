@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <stdint.h>
+#include <windows.h>
 class FrameBuffer {
 public:
     int width;
@@ -32,10 +33,11 @@ public:
      */
     uint32_t getPixel(int x, int y) const;
 
-    /**
-     * 输出：深度引用（可读写）
-     */
-    float& depth(int x, int y);
+    float getDepth(int x, int y) const;
+
+    void setDepth(int x, int y, float val);
+
+    void Present(HDC hdc);
 
 private:
     std::vector<uint32_t> colorBuffer;
