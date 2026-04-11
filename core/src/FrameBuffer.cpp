@@ -5,7 +5,7 @@
 void FrameBuffer::resize(int w, int h) {
     width = w;
     height = h;
-    depthBuffer.resize(w * h, -100);
+    depthBuffer.resize(w * h * 4, 10);   // 4x msaa
     colorBuffer.resize(w * h, 0);
     return ;
 }
@@ -25,16 +25,16 @@ void FrameBuffer::setPixel(int x, int y, uint32_t color) {
     return ;
 }
 
-float FrameBuffer::getDepth(int x, int y) const {
-    if (x >= width || y >= height)
-        return 100.f;
-    return depthBuffer[y * width + x];
+float FrameBuffer::getDepth(int x, int y, int k) const {
+    if (x >= width || y >= height || k >= 4)
+        return 10.f;
+    return depthBuffer[y * width * 4 + x * 4 + k];
 }
 
-void FrameBuffer::setDepth(int x, int y, float val) {
-    if (x >= width || y >= height)
+void FrameBuffer::setDepth(int x, int y, int k, float val) {
+    if (x >= width || y >= height || k >= 4)
         return;
-    depthBuffer[y * width + x] = val;
+    depthBuffer[y * width * 4 + x * 4 + k] = val;
 }
 
 void FrameBuffer::Present(HDC hdc) {

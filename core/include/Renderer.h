@@ -25,6 +25,8 @@ private:
 
     void drawTriangle(const VSOut v0, const VSOut& v1, const VSOut& v2, const std::vector<Light>& lights, const Texture2D& tex);
 
+    void rasterize();
+
     // viewport transform
     inline Vec3 NDC2Screen(const Vec3& ndc) {
         int width = framebuffer->width;

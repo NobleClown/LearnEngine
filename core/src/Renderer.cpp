@@ -77,34 +77,55 @@ void Renderer::drawTriangle(const VSOut v0, const VSOut& v1, const VSOut& v2, co
         return;
     }
 
+
+    Vec2 offsets[4] = {
+        {0.25f, 0.25f},
+        {0.75f, 0.25f},
+        {0.25f, 0.75f},
+        {0.75f, 0.75f}
+    };
     // 开始着色
     for (int i=std::max(0, minY); i<=maxY && i<height; i++) {
         for (int j=std::max(0, minX); j<=maxX && j<width; j++) {
-            // 获取着色中心
-            Vec3 p_center = {j + 0.5, i + 0.5, 0};
-            // 计算三角形三个顶点与着色中心围成的面积，当做权重(计算重心坐标)
-            // 顶点的对边与p_center围成的面积作为该顶点的权重
-            float w0 = CrossProduct(p1, p2, p_center);
-            float w1 = CrossProduct(p2, p0, p_center);
-            float w2 = CrossProduct(p0, p1, p_center);
-            // 权重均>0表示在三角形内部
-            if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
-                w0 /= area;
-                w1 /= area;
-                w2 /= area;
-                float cur_depth = p0.z * w0 + p1.z * w1 + p2.z * w2;
-                float depth = framebuffer->getDepth(j, i);
-                if (depth <= cur_depth) 
-                    continue;
-                framebuffer->setDepth(j, i, cur_depth);
-                FSIn fsIn;
-                fsIn.worldPos = v0.worldPos * w0 + v1.worldPos * w1 + v2.worldPos * w2;
-                fsIn.normal = v0.normal * w0 + v1.normal * w1 + v2.normal * w2;
-                fsIn.uv = v0.uv * w0 + v1.uv * w1 + v2.uv * w2;
-                
-                Vec3 color = shader->fragment(fsIn, lights, *camera, tex);
-                framebuffer->setPixel(j, i, PackRGBA(color));
+            Vec3 color(0, 0, 0);
+            int hits = 0;
+            for (int k=0; k<4; k++) {
+                // 获取着色中心
+                Vec3 p_sample = {j + offsets[k].x, i + offsets[k].y, 0};
+                // 计算三角形三个顶点与着色中心围成的面积，当做权重(计算重心坐标)
+                // 顶点的对边与p_center围成的面积作为该顶点的权重
+                float w0 = CrossProduct(p1, p2, p_sample);
+                float w1 = CrossProduct(p2, p0, p_sample);
+                float w2 = CrossProduct(p0, p1, p_sample);
+                // 权重均>0表示在三角形内部
+                if (w0 > 0 && w1 > 0 && w2 > 0) {
+                    w0 /= area;
+                    w1 /= area;
+                    w2 /= area;
+                    float cur_depth = p0.z * w0 + p1.z * w1 + p2.z * w2;
+                    float depth = framebuffer->getDepth(j, i, k);
+                    if (depth <= cur_depth) 
+                        continue;
+                    hits++;
+                    framebuffer->setDepth(j, i, k, cur_depth);
+                    FSIn fsIn;
+                    w0 *= v0.invW;
+                    w1 *= v1.invW;
+                    w2 *= v2.invW;
+                    float sum_w = w0 + w1 + w2;
+                    w0 /= sum_w;
+                    w1 /= sum_w;
+                    w2 /= sum_w;
+                    fsIn.worldPos = v0.worldPos * w0 + v1.worldPos * w1 + v2.worldPos * w2;
+                    fsIn.normal = (v0.normal * w0 + v1.normal * w1 + v2.normal * w2).normalize();
+                    fsIn.uv = v0.uv * w0 + v1.uv * w1 + v2.uv * w2;
+                    color = color + shader->fragment(fsIn, lights, *camera, tex);
+                }
             }
+            if (hits == 0)
+                continue;
+            color = color / hits;
+            framebuffer->setPixel(j, i, PackRGBA(color));
         }
     }
 }

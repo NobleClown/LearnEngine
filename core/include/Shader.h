@@ -49,9 +49,12 @@ public:
         Vec3 inverseLookat = (camera.position - in.worldPos).normalize();
         Vec3 HalfVec = (lightDir + inverseLookat).normalize();
         float k_spec = std::powf(std::max(0.f, HalfVec.dotProduct(norm)), 32) / r2 * 10;
+        // float k_spec = std::powf(std::max(0.f, HalfVec.dotProduct(norm)), 32) / (1 + r2 / 10);
         float k_amb = 0.01f;
         float k_diff = std::max(norm.dotProduct(lightDir), 0.f) / r2;
         Vec3 res = albedo * k_amb + albedo * k_diff + albedo * k_spec;
+        // float k_diff = std::max(norm.dotProduct(lightDir), 0.f) / (1 + r2 / 10);
+        // Vec3 res = albedo * k_amb + albedo * k_diff + Vec3(0.5f, 0.5f, 0.5f) * k_spec;
         res.x = std::min(1.f, res.x);
         res.y = std::min(1.f, res.y);
         res.z = std::min(1.f, res.z);

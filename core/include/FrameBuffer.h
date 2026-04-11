@@ -33,9 +33,9 @@ public:
      */
     uint32_t getPixel(int x, int y) const;
 
-    float getDepth(int x, int y) const;
+    float getDepth(int x, int y, int k) const;
 
-    void setDepth(int x, int y, float val);
+    void setDepth(int x, int y, int k, float val);
 
     void Present(HDC hdc);
 
